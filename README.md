@@ -1,5 +1,6 @@
 # DeepImageRelevance
 A better way to learn about images.
+*readme still under construction*
 
 ## Who
 RogueHat - A software developer and novice machine learning hobbyist.
