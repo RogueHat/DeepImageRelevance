@@ -1,4 +1,4 @@
 import os
 
-os.makedirs('danbooru')
-os.makedirs('search/results')
+os.makedirs('danbooru', exists_ok=True)
+os.makedirs('search/results', exists_ok=True)
