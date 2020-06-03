@@ -2,3 +2,4 @@ danbooru/*
 index/deeprelevance.db
 ml/vae.md
 search/results/*
+web_service/
