@@ -3,6 +3,20 @@ A better way to learn about images.
 
 *readme still under construction*
 
+## Requirements
+* Python >=3.6.9
+* (Py)Torch >=1.4.0
+* Pillow
+* dhash
+* Danbooru 2019 512px dataset
+
+## How to use
+1. Execute create_directories.py
+2. Download the 512px danbooru dataset into the danbooru folder
+3. Go into the ml directory and execute train.py to generate the model. Runtime: A couple of minutes
+4. Go into the index directory and execute create_indexes.py. Runtime: A really long time. About 2 days on my machine.
+5. Go into the search directory and execute run_search.py. This will run a search against the test image and populate the results folder with relevant images. Runtime: 15 seconds
+
 ## Who
 RogueHat - A software developer and novice machine learning hobbyist.
 
@@ -37,3 +51,6 @@ Taken to the extreme, this concept can even be used to relate one set of tags to
 
 ## So what does this all mean
 Originally this was meant as a way for me to retrain a different categorization model without having to retrain directly against the dataset, resulting in faster training times. Goal achieved I suppose. But in doing so I found (not discovered. I am sure people way smarter than me have already found this out) a way to represent images in a latent space that is meaningful and can be used in other applications. Image Relevancy was the first direct result of this. Knowing how VAE's work, I am sure someone can come along and use this to generate content as part of a GAN. Someone could throw an LSTM to the output of this thing and even map dialogue to that latent space. Kinda exciting not gonna lie, but in any case hope someone out there will find this useful.
+
+## Impelementation details
+Unforunately my machine is way too underpowered to do the whole search on the VAE output alone. In order to speed up my search, I rely on a degraded version of dhash (a well known algorithm for image similarity) and run the relevancy search on the top 10000 images.
