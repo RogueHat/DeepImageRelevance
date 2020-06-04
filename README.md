@@ -6,6 +6,7 @@ A better way to learn about images.
 ## Requirements
 * Python >=3.6.9
 * (Py)Torch >=1.4.0
+* Torchvision
 * Pillow
 * dhash
 * Danbooru 2019 512px dataset
