@@ -12,6 +12,7 @@ from torch.autograd import Variable
 from torch.nn import functional as F
 from torch import optim
 from PIL import Image
+from os import path
 
 def get_loss(data, sq_feature, vae, device):
 	data = data.to(device)
@@ -52,6 +53,9 @@ if __name__ == '__main__':
 
 	sq_feature, vae = mymodels.create_models()
 	sq_feature = sq_feature.to(device)
+	
+	if path.exists('vae.md'):
+		vae.load_state_dict(torch.load('vae.md'))
 
 	vae = vae.to(device)
 	optimizer = optim.Adam(vae.parameters(), lr=1e-4)

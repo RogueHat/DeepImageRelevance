@@ -35,6 +35,12 @@ def preprocess(im):
 
 def integer_hamming(x, y):
 	return bin(x^y).count('1')
+	
+def hamming_worker(targethash):
+	def inner_worker(tup):
+		dbid, otherhash = tup
+		return dbid, integer_hamming(targethash, otherhash)
+	return inner_worker
 
 class Search:
 	def __init__(self, cluster_size=2000, dhash_size=4):
@@ -51,7 +57,7 @@ class Search:
 			SELECT fts.dbid, fts.tensor
 			FROM features as fts
 			INNER JOIN dhash_filtered
-			ON fts.dbid = dhash_filtered.dbid
+			ON dhash_filtered.dbid = fts.dbid
 		'''
 	
 	def get_danbooru_ids(self, im, result_size=20):
@@ -70,8 +76,9 @@ class Search:
 			c = conn.cursor()
 			c.execute(self.dhash_stmt)
 			tups = c.fetchall()
-			
-		tups = list(sorted(tups, key = lambda tup: integer_hamming(targethash, tup[1])))[:self.cluster_size]
+		
+		tups = list(map(hamming_worker(targethash), tups))
+		tups = list(sorted(tups, key = lambda tup: tup[1]))[:self.cluster_size]
 		fnames = [(tup[0],) for tup in tups]
 		print('dhash filter', time.time()-sub_time)
 

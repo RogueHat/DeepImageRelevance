@@ -27,7 +27,8 @@ class VAE(nn.Module):
 		super(VAE, self).__init__()
 		
 		actives = nn.ReLU
-		drop = nn.Dropout()
+		# ~ drop = nn.Dropout()
+		drop = Identity()
 		
 		self.encoder = nn.Sequential(
 			nn.Linear(1280, 1000),

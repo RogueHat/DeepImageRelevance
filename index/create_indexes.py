@@ -1,3 +1,7 @@
+from datetime import datetime
+
+indexer_start_time = datetime.now()
+
 import os
 
 def batch(iterable, n=5):
@@ -15,17 +19,16 @@ def getdanboorupairs(fpath):
 				yield fname.split('.')[0], fpath
 
 import sqlite3
-create_feature_table_stmt = 'CREATE TABLE IF NOT EXISTS features (dbid TEXT PRIMARY KEY, dhash INTEGER, tensor BLOB)'
+create_feature_table_stmt = 'CREATE TABLE IF NOT EXISTS features (dbid TEXT PRIMARY KEY, dhash INTEGER, tensor BLOB, lastupdate TEXT)'
 create_filepath_table_stmt = 'CREATE TABLE IF NOT EXISTS filepaths (dbid TEXT PRIMARY KEY, filepath TEXT)'
 
-with sqlite3.connect('deeprelevance.db') as conn:
+with sqlite3.connect('deeprelevance.db', timeout=60*5) as conn:
 	c = conn.cursor()
 	c.execute(create_feature_table_stmt)
 	c.execute(create_filepath_table_stmt)
 
 from indexer import Indexer
 from PIL import Image
-from datetime import datetime
 from io import BytesIO
 import dhash, time, torch
 
@@ -73,29 +76,30 @@ def worker(dbid_fpath_pairs):
 	im_tensors = list(map(get_tensor(indexer), fpaths))
 	muvar_pairs = indexer.batch_get_feat_stacked(im_tensors)
 	muvar_bufs = list(map(serialize, muvar_pairs))
+	lastupdates = [indexer_start_time] * len(im_tensors)
 	
-	feature_rows = zip(dbids, dhashes, muvar_bufs)
+	feature_rows = list(zip(dbids, dhashes, muvar_bufs, lastupdates))
 	
 	insert_fpaths_stmt = 'INSERT OR REPLACE INTO filepaths VALUES (?,?)'
-	insert_feats_stmt = 'INSERT OR REPLACE INTO features VALUES (?,?,?)'
-	with sqlite3.connect('deeprelevance.db') as conn:
+	insert_feats_stmt = 'INSERT OR REPLACE INTO features VALUES (?,?,?,?)'
+	with sqlite3.connect('deeprelevance.db', timeout=60*5) as conn:
 		c = conn.cursor()
 		c.executemany(insert_fpaths_stmt, dbid_fpath_pairs)
 		c.executemany(insert_feats_stmt, feature_rows)
 		conn.commit()
 		
 	run_time = time.time() - start_time
-	print("{} Runtime: {}".format(datetime.now(), run_time))
+	print("{} Runtime: {}".format(indexer_start_time, run_time))
 
 
 from multiprocessing import Pool
 if __name__ == '__main__':
-	bsize = 10
+	bsize = 12
 	
 	dbpairs_iterator = getdanboorupairs('../danbooru')
 	dbpair_batches = list(batch(dbpairs_iterator, bsize))
 	
-	p = Pool()
+	p = Pool(5)
 	list(p.map(worker, dbpair_batches))
 	
 	
