@@ -19,7 +19,7 @@ def getdanboorupairs(fpath):
 				yield fname.split('.')[0], fpath
 
 import sqlite3
-create_feature_table_stmt = 'CREATE TABLE IF NOT EXISTS features (dbid TEXT PRIMARY KEY, dhash INTEGER, tensor BLOB, lastupdate TEXT)'
+create_feature_table_stmt = 'CREATE TABLE IF NOT EXISTS features (dbid TEXT PRIMARY KEY, dhash INTEGER, tensor BLOB, lastupdate TEXT, clusterid INTEGER)'
 create_filepath_table_stmt = 'CREATE TABLE IF NOT EXISTS filepaths (dbid TEXT PRIMARY KEY, filepath TEXT)'
 
 with sqlite3.connect('deeprelevance.db', timeout=60*5) as conn:
@@ -75,10 +75,11 @@ def worker(dbid_fpath_pairs):
 	indexer = Indexer()
 	im_tensors = list(map(get_tensor(indexer), fpaths))
 	muvar_pairs = indexer.batch_get_feat_stacked(im_tensors)
+	cids = list(map(lambda t: indexer.get_cluster_id(t[0]), muvar_pairs))
 	muvar_bufs = list(map(serialize, muvar_pairs))
 	lastupdates = [indexer_start_time] * len(im_tensors)
 	
-	feature_rows = list(zip(dbids, dhashes, muvar_bufs, lastupdates))
+	feature_rows = list(zip(dbids, dhashes, muvar_bufs, lastupdates, cids))
 	
 	insert_fpaths_stmt = 'INSERT OR REPLACE INTO filepaths VALUES (?,?)'
 	insert_feats_stmt = 'INSERT OR REPLACE INTO features VALUES (?,?,?,?)'

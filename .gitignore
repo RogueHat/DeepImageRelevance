@@ -1,5 +1,6 @@
 danbooru/*
 index/deeprelevance.db
+index/centroids.tensor
 ml/vae.md
 search/results/*
 web_service/
