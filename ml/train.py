@@ -54,8 +54,8 @@ if __name__ == '__main__':
 	sq_feature, vae = mymodels.create_models()
 	sq_feature = sq_feature.to(device)
 	
-	if path.exists('vae.md'):
-		vae.load_state_dict(torch.load('vae.md'))
+	# ~ if path.exists('vae.md'):
+		# ~ vae.load_state_dict(torch.load('vae.md'))
 
 	vae = vae.to(device)
 	optimizer = optim.Adam(vae.parameters(), lr=1e-4)
@@ -83,8 +83,11 @@ if __name__ == '__main__':
 		print(i, validate_loss.item(), std_loss.item())
 		
 		torch.cuda.empty_cache()
-		if len(loss_list) == loss_size and std_loss.item() < 250:
+		if i == 1000:
 			break
+		
+		# ~ if len(loss_list) == loss_size and std_loss.item() < 250:
+			# ~ break
 			
-	torch.save(vae.state_dict(), 'vae.md')
+	torch.save(vae.state_dict(), 'vae_new.md')
 	print('VAE saved')

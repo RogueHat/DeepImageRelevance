@@ -1,6 +1,7 @@
 danbooru/*
-index/deeprelevance.db
-index/centroids.tensor
-ml/vae.md
+index/*.db
+index/*.tensor
+ml/*.md
 search/results/*
 web_service/
+metadata/

@@ -75,14 +75,15 @@ def worker(dbid_fpath_pairs):
 	indexer = Indexer()
 	im_tensors = list(map(get_tensor(indexer), fpaths))
 	muvar_pairs = indexer.batch_get_feat_stacked(im_tensors)
-	cids = list(map(lambda t: indexer.get_cluster_id(t[0]), muvar_pairs))
+	mus = map(lambda t: t[0].unsqueeze(0), muvar_pairs)
+	cids = list(map(indexer.get_cluster_id, mus))
 	muvar_bufs = list(map(serialize, muvar_pairs))
 	lastupdates = [indexer_start_time] * len(im_tensors)
 	
 	feature_rows = list(zip(dbids, dhashes, muvar_bufs, lastupdates, cids))
 	
 	insert_fpaths_stmt = 'INSERT OR REPLACE INTO filepaths VALUES (?,?)'
-	insert_feats_stmt = 'INSERT OR REPLACE INTO features VALUES (?,?,?,?)'
+	insert_feats_stmt = 'INSERT OR REPLACE INTO features VALUES (?,?,?,?,?)'
 	with sqlite3.connect('deeprelevance.db', timeout=60*5) as conn:
 		c = conn.cursor()
 		c.executemany(insert_fpaths_stmt, dbid_fpath_pairs)

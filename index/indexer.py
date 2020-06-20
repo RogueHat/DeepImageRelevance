@@ -7,6 +7,7 @@ import torchvision.models as tvmodels
 import models as mymodels
 
 from torchvision import transforms
+from PIL import Image
 
 class Indexer:	
 	def __init__(self, device_name="cpu"):
@@ -25,10 +26,13 @@ class Indexer:
 		self.cos = nn.CosineSimilarity(dim=-1)
 	
 	def get_cluster_id(self, feat_tensor):
+		assert feat_tensor.shape == (1,100)
 		x = torch.stack([feat_tensor]*len(self.centers))
 		similarity_scores = self.cos(x, self.centers).flatten()
 		_, idxs = torch.topk(similarity_scores, 1, largest=True)
 		idx = idxs[0].item()
+		
+		assert idx < len(self.centers)
 		return idx
 		
 	def get_features(self, im_tensor):
@@ -60,6 +64,20 @@ class Indexer:
 		std = torch.exp(0.5*logvar)
 		z = (x - mu) / std
 		return z
+	
+	def preprocess(self, im):
+		thumbsize = (512, 512)
+		small = im.copy()
+		small.thumbnail(thumbsize)
+		smallsize = small.size
+		centerloc = tuple(int((a-b)/2) for a,b in zip(thumbsize, smallsize))
+		square = Image.new('RGB', thumbsize)
+		square.paste(small, centerloc)
+		
+		small.close()
+		im.close()
+		
+		return square
 
 if __name__ == '__main__':
 	from multiprocessing import Pool
